@@ -1,89 +1,88 @@
-import { useMemo } from 'react';
 import * as THREE from 'three';
+import {
+  COURT_LENGTH,
+  COURT_RENDERING,
+  DOUBLES_COURT_WIDTH,
+  NET_HEIGHT,
+  SINGLES_COURT_WIDTH
+} from '../gameplay/gameTuning';
 
 export function Court() {
-  const courtWidth = 10;
-  const courtLength = 23.77; // Standard length
-  const singlesWidth = 8.23;
-  const doublesWidth = 10.97;
-  const serviceLinePos = 6.4;
-  const lineWidth = 0.08;
-
   return (
     <group>
       {/* Surrounding Pavement */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
-        <planeGeometry args={[40, 50]} />
+        <planeGeometry args={[COURT_RENDERING.surroundingWidth, COURT_RENDERING.surroundingLength]} />
         <meshStandardMaterial color="#1e40af" /> {/* Blue surrounding */}
       </mesh>
 
       {/* Main Playing Surface (Doubles) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[doublesWidth, courtLength]} />
+        <planeGeometry args={[DOUBLES_COURT_WIDTH, COURT_LENGTH]} />
         <meshStandardMaterial color="#166534" /> {/* Green court */}
       </mesh>
 
       {/* Lines Group */}
       <group position={[0, 0.01, 0]}>
         {/* Baselines */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, courtLength / 2]}>
-          <planeGeometry args={[doublesWidth, lineWidth]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, COURT_LENGTH / 2]}>
+          <planeGeometry args={[DOUBLES_COURT_WIDTH, COURT_RENDERING.lineWidth]} />
           <meshBasicMaterial color="white" />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -courtLength / 2]}>
-          <planeGeometry args={[doublesWidth, lineWidth]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -COURT_LENGTH / 2]}>
+          <planeGeometry args={[DOUBLES_COURT_WIDTH, COURT_RENDERING.lineWidth]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Doubles Sidelines */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[doublesWidth / 2, 0, 0]}>
-          <planeGeometry args={[lineWidth, courtLength]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[DOUBLES_COURT_WIDTH / 2, 0, 0]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_LENGTH]} />
           <meshBasicMaterial color="white" />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-doublesWidth / 2, 0, 0]}>
-          <planeGeometry args={[lineWidth, courtLength]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-DOUBLES_COURT_WIDTH / 2, 0, 0]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_LENGTH]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Singles Sidelines */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[singlesWidth / 2, 0, 0]}>
-          <planeGeometry args={[lineWidth, courtLength]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[SINGLES_COURT_WIDTH / 2, 0, 0]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_LENGTH]} />
           <meshBasicMaterial color="white" />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-singlesWidth / 2, 0, 0]}>
-          <planeGeometry args={[lineWidth, courtLength]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-SINGLES_COURT_WIDTH / 2, 0, 0]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_LENGTH]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Service Lines */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, serviceLinePos]}>
-          <planeGeometry args={[singlesWidth, lineWidth]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, COURT_RENDERING.serviceLineZ]}>
+          <planeGeometry args={[SINGLES_COURT_WIDTH, COURT_RENDERING.lineWidth]} />
           <meshBasicMaterial color="white" />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -serviceLinePos]}>
-          <planeGeometry args={[singlesWidth, lineWidth]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -COURT_RENDERING.serviceLineZ]}>
+          <planeGeometry args={[SINGLES_COURT_WIDTH, COURT_RENDERING.lineWidth]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Center Service Line */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-          <planeGeometry args={[lineWidth, serviceLinePos * 2]} />
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_RENDERING.serviceLineZ * 2]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Center Marks */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, courtLength / 2 - 0.2]}>
-          <planeGeometry args={[lineWidth, 0.4]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, COURT_LENGTH / 2 - 0.2]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_RENDERING.centerMarkLength]} />
           <meshBasicMaterial color="white" />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -courtLength / 2 + 0.2]}>
-          <planeGeometry args={[lineWidth, 0.4]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -COURT_LENGTH / 2 + 0.2]}>
+          <planeGeometry args={[COURT_RENDERING.lineWidth, COURT_RENDERING.centerMarkLength]} />
           <meshBasicMaterial color="white" />
         </mesh>
 
         {/* Mid court line (net position mark) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-          <planeGeometry args={[doublesWidth, lineWidth * 0.5]} />
+          <planeGeometry args={[DOUBLES_COURT_WIDTH, COURT_RENDERING.lineWidth * 0.5]} />
           <meshBasicMaterial color="white" opacity={0.3} transparent />
         </mesh>
       </group>
@@ -91,7 +90,9 @@ export function Court() {
       {/* Net */}
       <group position={[0, 0.52, 0]}>
         <mesh>
-          <boxGeometry args={[doublesWidth + 0.4, 1.05, 0.02]} />
+          <boxGeometry
+            args={[DOUBLES_COURT_WIDTH + COURT_RENDERING.netPostPadding * 2, NET_HEIGHT, COURT_RENDERING.netDepth]}
+          />
           <meshStandardMaterial 
             color="white" 
             transparent 
@@ -101,18 +102,24 @@ export function Court() {
         </mesh>
         {/* Net Top Band */}
         <mesh position={[0, 0.5, 0]}>
-          <boxGeometry args={[doublesWidth + 0.4, 0.08, 0.03]} />
+          <boxGeometry
+            args={[
+              DOUBLES_COURT_WIDTH + COURT_RENDERING.netPostPadding * 2,
+              COURT_RENDERING.netTopBandHeight,
+              COURT_RENDERING.netTopBandDepth
+            ]}
+          />
           <meshStandardMaterial color="white" />
         </mesh>
       </group>
 
       {/* Net Posts */}
-      <mesh position={[doublesWidth / 2 + 0.2, 0.5, 0]}>
-        <cylinderGeometry args={[0.08, 0.08, 1.1]} />
+      <mesh position={[DOUBLES_COURT_WIDTH / 2 + COURT_RENDERING.netPostPadding, 0.5, 0]}>
+        <cylinderGeometry args={[COURT_RENDERING.lineWidth, COURT_RENDERING.lineWidth, COURT_RENDERING.netPostHeight]} />
         <meshStandardMaterial color="#333" />
       </mesh>
-      <mesh position={[-doublesWidth / 2 - 0.2, 0.5, 0]}>
-        <cylinderGeometry args={[0.08, 0.08, 1.1]} />
+      <mesh position={[-DOUBLES_COURT_WIDTH / 2 - COURT_RENDERING.netPostPadding, 0.5, 0]}>
+        <cylinderGeometry args={[COURT_RENDERING.lineWidth, COURT_RENDERING.lineWidth, COURT_RENDERING.netPostHeight]} />
         <meshStandardMaterial color="#333" />
       </mesh>
     </group>

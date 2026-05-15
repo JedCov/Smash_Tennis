@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { SHOT_TARGETS } from './gameTuning';
 
 export type CourtSide = 'PLAYER' | 'AI';
 export type ServeSide = 'DEUCE' | 'AD';
@@ -16,20 +17,23 @@ export function calculateLegalShot(
   toSide: CourtSide = 'AI'
 ) {
   // Target area depends on which side we are hitting to.
-  let targetZ = toSide === 'AI' ? -4 - Math.random() * 5 : 4 + Math.random() * 5;
-  let targetX = (Math.random() - 0.5) * 8;
+  let targetZ =
+    toSide === 'AI'
+      ? SHOT_TARGETS.aiMinZ - Math.random() * SHOT_TARGETS.aiZRange
+      : SHOT_TARGETS.playerMinZ + Math.random() * SHOT_TARGETS.playerZRange;
+  let targetX = (Math.random() - 0.5) * SHOT_TARGETS.rallyXRange;
 
   if (isServe) {
     // Enforce diagonal serve cross-court.
     if (toSide === 'AI') {
-      targetZ = -4.5; // In service box (approx -1 to -7 range)
-      targetX = serveSide === 'DEUCE' ? -2.5 : 2.5;
+      targetZ = SHOT_TARGETS.aiServeZ; // In service box (approx -1 to -7 range)
+      targetX = serveSide === 'DEUCE' ? SHOT_TARGETS.serveAdTargetX : SHOT_TARGETS.serveDeuceTargetX;
     } else {
-      targetZ = 4.5; // In service box (approx 1 to 7 range)
-      targetX = serveSide === 'DEUCE' ? 2.5 : -2.5;
+      targetZ = SHOT_TARGETS.playerServeZ; // In service box (approx 1 to 7 range)
+      targetX = serveSide === 'DEUCE' ? SHOT_TARGETS.serveDeuceTargetX : SHOT_TARGETS.serveAdTargetX;
     }
     // Add slight randomness to serve target.
-    targetX += (Math.random() - 0.5) * 2.0;
+    targetX += (Math.random() - 0.5) * SHOT_TARGETS.serveRandomXRange;
   }
 
   const dy = fromPos.y - 0.1;

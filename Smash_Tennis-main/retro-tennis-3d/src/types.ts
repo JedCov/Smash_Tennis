@@ -19,9 +19,7 @@ export interface Score {
 
 export const TENNIS_SCORES = ['0', '15', '30', '40', 'AD'];
 
-export const COURT_WIDTH = 10;
-export const COURT_LENGTH = 20;
-export const NET_HEIGHT = 1;
+export { COURT_LENGTH, COURT_WIDTH, NET_HEIGHT } from './gameplay/gameTuning';
 
 export interface BallState {
   position: [number, number, number];

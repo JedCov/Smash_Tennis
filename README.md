@@ -54,6 +54,7 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
 - `Smash_Tennis-main/retro-tennis-3d/src/components/GameMenus.tsx` shows the start and game-over screens.
 - `Smash_Tennis-main/retro-tennis-3d/src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
 - `Smash_Tennis-main/retro-tennis-3d/src/gameplay/shotPhysics.ts` calculates shot direction and speed.
+- `Smash_Tennis-main/retro-tennis-3d/src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
 - `.github/workflows/deploy.yml` builds the app and publishes it to GitHub Pages.
 
 ## Known issues
