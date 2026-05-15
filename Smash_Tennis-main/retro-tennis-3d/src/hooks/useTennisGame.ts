@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { GameState, Score, TENNIS_SCORES } from '../types';
 
 export function useTennisGame() {
@@ -18,6 +18,16 @@ export function useTennisGame() {
   const [targetRallyLength, setTargetRallyLength] = useState(3);
   const [totalPointsPlayed, setTotalPointsPlayed] = useState(0);
   const [lastPointWinner, setLastPointWinner] = useState<'PLAYER' | 'AI' | null>(null);
+  const scoringTimeoutRef = useRef<number | null>(null);
+
+  const clearScoringTimeout = useCallback(() => {
+    if (scoringTimeoutRef.current !== null) {
+      window.clearTimeout(scoringTimeoutRef.current);
+      scoringTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearScoringTimeout, [clearScoringTimeout]);
 
   // Difficulty scaling logic
   const totalGames = score.playerGames + score.aiGames + (score.playerSets + score.aiSets) * 6;
@@ -57,6 +67,7 @@ export function useTennisGame() {
   };
 
   const addPoint = useCallback((who: 'PLAYER' | 'AI') => {
+    clearScoringTimeout();
     const next: Score = { ...score };
     let nextIsTiebreak = isTiebreak;
     let matchWinner: 'PLAYER' | 'AI' | null = null;
@@ -154,11 +165,16 @@ export function useTennisGame() {
       setWinner(matchWinner);
       setGameState(GameState.GAME_OVER);
     } else {
-      setGameState(GameState.SERVING);
+      setGameState(GameState.SCORING);
+      scoringTimeoutRef.current = window.setTimeout(() => {
+        scoringTimeoutRef.current = null;
+        setGameState(GameState.SERVING);
+      }, 900);
     }
-  }, [checkSetWin, isTiebreak, score]);
+  }, [checkSetWin, clearScoringTimeout, isTiebreak, score]);
 
   const startGame = () => {
+    clearScoringTimeout();
     setScore({
         player: 0, ai: 0,
         playerGames: 0, aiGames: 0,
