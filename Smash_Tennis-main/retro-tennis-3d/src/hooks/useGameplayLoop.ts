@@ -13,6 +13,7 @@ import {
 } from '../gameplay/gameTuning';
 import { playHitSound, playMissSound, playScoreSound } from '../sounds';
 import { GameState, type PlayerType } from '../types';
+import { usePlayerInput } from './usePlayerInput';
 
 export interface GameplayDifficultyStats extends ShotDifficultyStats {
   racketAccuracyRadius: number;
@@ -61,9 +62,8 @@ export function useGameplayLoop({
   const playerPos = useRef(new THREE.Vector3(0, 0, 9));
   const aiPos = useRef(new THREE.Vector3(AI_BASELINE_POSITION.x, 0, AI_BASELINE_POSITION.z));
   const playerFacingY = useRef(Math.PI);
-  const keys = useRef<{ [key: string]: boolean }>({});
-  const mousePos = useRef({ x: 0, y: 0 });
   const { camera } = useThree();
+  const { isSwinging, isVisualSwinging, mouseX, mouseY, clearSwingInput } = usePlayerInput();
 
   const smashOpportunity = useRef<SmashOpportunity>(createEmptySmashOpportunity());
   const smashCooldownUntil = useRef(0);
@@ -74,38 +74,9 @@ export function useGameplayLoop({
   const aiServeReadyAt = useRef(0);
 
   const [lastHitter, setLastHitter] = useState<PlayerType | null>(null);
-  const [isVisualSwinging, setIsVisualSwinging] = useState(false);
   const [isVisualSmashing, setIsVisualSmashing] = useState(false);
   const [isSmashOpportunityVisible, setIsSmashOpportunityVisible] = useState(false);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      keys.current[e.code] = true;
-      if (e.code === 'Space') {
-        setIsVisualSwinging(true);
-        setTimeout(() => setIsVisualSwinging(false), 200);
-      }
-    };
-    const handleKeyUp = (e: KeyboardEvent) => (keys.current[e.code] = false);
-
-    const handleMouseDown = () => {
-      keys.current['MouseDown'] = true;
-      setIsVisualSwinging(true);
-      setTimeout(() => setIsVisualSwinging(false), 200);
-    };
-    const handleMouseUp = () => (keys.current['MouseDown'] = false);
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
 
   const resetBall = useCallback((server: PlayerType) => {
     if (!ballRef.current) return;
@@ -164,8 +135,7 @@ export function useGameplayLoop({
     triggerGameplayEvent('vfx:overhead-smash');
     triggerGameplayEvent('audio:overhead-smash');
     playHitSound();
-    keys.current['MouseDown'] = false;
-    keys.current['Space'] = false;
+    clearSwingInput();
   };
 
   const performWeakSmashFailReturn = (ballPos: THREE.Vector3) => {
@@ -188,18 +158,13 @@ export function useGameplayLoop({
   useFrame((state, delta) => {
     if (gameState !== GameState.PLAYING && gameState !== GameState.SERVING) return;
 
-    // Use R3F state.mouse for accurate relative cursor position.
-    mousePos.current.x = state.mouse.x;
-    mousePos.current.y = state.mouse.y;
-
     const ballPos = ballRef.current?.getPosition() || new THREE.Vector3();
     const ballVel = ballRef.current?.getVelocity() || new THREE.Vector3();
-    const isSwinging = keys.current['Space'] || keys.current['MouseDown'];
     const now = state.clock.getElapsedTime();
 
     // Player Movement (High-response Mouse follow)
-    let targetX = mousePos.current.x * 12.0;
-    let targetZ = 6.0 + -mousePos.current.y * 10.0;
+    let targetX = mouseX.current * 12.0;
+    let targetZ = 6.0 + -mouseY.current * 10.0;
 
     if (gameState === GameState.SERVING && servingPlayer === 'PLAYER') {
       // Hard pin player behind baseline for service on correct side.
@@ -288,7 +253,7 @@ export function useGameplayLoop({
           setGameState(GameState.PLAYING);
           setLastHitter('PLAYER');
           playHitSound();
-          keys.current['MouseDown'] = false;
+          clearSwingInput();
         }
       } else {
         // AI Serving logic
@@ -361,7 +326,7 @@ export function useGameplayLoop({
         consecutiveReturns.current++;
         playHitSound();
 
-        keys.current['MouseDown'] = false;
+        clearSwingInput();
       }
     }
 
