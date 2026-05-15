@@ -72,6 +72,7 @@ Current check notes:
 - `src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
 - `src/hooks/useTennisGame.ts` manages tennis scoring and match state.
 - `src/gameplay/shotPhysics.ts` calculates shot direction and speed.
+- `src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
 - `scripts/copy-404.mjs` copies the built app shell to `dist/404.html` after production builds so GitHub Pages refreshes work.
 
 ## Known issues

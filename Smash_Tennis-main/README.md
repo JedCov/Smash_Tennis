@@ -27,7 +27,7 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 
 ## Code organization
 
-The main game screen is split into small files so it is easier to maintain: `Game.tsx` wires the scene together, `GameHud.tsx` shows the in-game overlays, `GameMenus.tsx` shows the start and game-over screens, `useGameplayLoop.ts` runs the frame-by-frame gameplay logic, and `shotPhysics.ts` calculates shot direction and speed.
+The main game screen is split into small files so it is easier to maintain: `Game.tsx` wires the scene together, `GameHud.tsx` shows the in-game overlays, `GameMenus.tsx` shows the start and game-over screens, `useGameplayLoop.ts` runs the frame-by-frame gameplay logic, `shotPhysics.ts` calculates shot direction and speed, and `gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
 
 ## How to run locally
 

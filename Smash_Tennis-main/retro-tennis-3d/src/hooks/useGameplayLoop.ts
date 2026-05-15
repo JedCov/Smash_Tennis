@@ -3,6 +3,14 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { BallHandle } from '../components/Ball';
 import { calculateLegalShot, type ServeSide, type ShotDifficultyStats } from '../gameplay/shotPhysics';
+import {
+  AI_BASELINE_POSITION,
+  NET_HEIGHT,
+  OUT_OF_BOUNDS_LIMITS,
+  OVERHEAD_SMASH_CONFIG,
+  PLAYER_MOVEMENT_LIMITS,
+  SERVE_POSITIONS
+} from '../gameplay/gameTuning';
 import { playHitSound, playMissSound, playScoreSound } from '../sounds';
 import { GameState, type PlayerType } from '../types';
 
@@ -28,27 +36,6 @@ type SmashOpportunity = {
   targetZ: number;
 };
 
-const OVERHEAD_SMASH_CONFIG = {
-  netDistanceThreshold: 3.5,
-  smashHeightThreshold: 2.6,
-  maxSmashHeight: 6.2,
-  playerForwardWindow: 3.0,
-  playerBackWindow: 1.2,
-  lateralWindow: 2.5,
-  timingWindow: 0.95,
-  slowdownAmount: 0.45,
-  autoAlignmentStrength: 0.16,
-  assistedPositionStrength: 0.12,
-  assistedMaxStep: 0.09,
-  smashSpeedMultiplier: 2.3,
-  smashDownwardVelocity: -2.8,
-  weakReturnSpeedMultiplier: 0.72,
-  failWeakReturnRadius: 1.8,
-  cameraShakeDuration: 0.32,
-  cameraShakeIntensity: 0.18,
-  retriggerCooldown: 0.9
-};
-
 const createEmptySmashOpportunity = (): SmashOpportunity => ({
   active: false,
   startedAt: 0,
@@ -72,7 +59,7 @@ export function useGameplayLoop({
 }: UseGameplayLoopOptions) {
   const ballRef = useRef<BallHandle>(null);
   const playerPos = useRef(new THREE.Vector3(0, 0, 9));
-  const aiPos = useRef(new THREE.Vector3(0, 0, -9));
+  const aiPos = useRef(new THREE.Vector3(AI_BASELINE_POSITION.x, 0, AI_BASELINE_POSITION.z));
   const playerFacingY = useRef(Math.PI);
   const keys = useRef<{ [key: string]: boolean }>({});
   const mousePos = useRef({ x: 0, y: 0 });
@@ -123,12 +110,12 @@ export function useGameplayLoop({
   const resetBall = useCallback((server: PlayerType) => {
     if (!ballRef.current) return;
     if (server === 'PLAYER') {
-      ballRef.current.reset([playerPos.current.x + 0.4, 1.5, playerPos.current.z - 0.2], [0, 0, 0]);
+      ballRef.current.reset([playerPos.current.x + SERVE_POSITIONS.ballXOffset, SERVE_POSITIONS.ballHeight, playerPos.current.z - SERVE_POSITIONS.ballZOffset], [0, 0, 0]);
     } else {
-      ballRef.current.reset([aiPos.current.x - 0.4, 1.5, aiPos.current.z + 0.2], [0, 0, 0]);
+      ballRef.current.reset([aiPos.current.x - SERVE_POSITIONS.ballXOffset, SERVE_POSITIONS.ballHeight, aiPos.current.z + SERVE_POSITIONS.ballZOffset], [0, 0, 0]);
     }
     setLastHitter(null);
-    previousBallZ.current = server === 'PLAYER' ? playerPos.current.z - 0.2 : aiPos.current.z + 0.2;
+    previousBallZ.current = server === 'PLAYER' ? playerPos.current.z - SERVE_POSITIONS.ballZOffset : aiPos.current.z + SERVE_POSITIONS.ballZOffset;
     pointEndedRef.current = false;
     aiServeReadyAt.current = 0;
     consecutiveReturns.current = 0;
@@ -149,7 +136,7 @@ export function useGameplayLoop({
       startedAt: now,
       expiresAt: now + OVERHEAD_SMASH_CONFIG.timingWindow,
       targetX: ballPos.x,
-      targetZ: THREE.MathUtils.clamp(ballPos.z, 2.1, OVERHEAD_SMASH_CONFIG.netDistanceThreshold)
+      targetZ: THREE.MathUtils.clamp(ballPos.z, PLAYER_MOVEMENT_LIMITS.minZ + 0.1, OVERHEAD_SMASH_CONFIG.netDistanceThreshold)
     };
     setIsSmashOpportunityVisible(true);
     triggerGameplayEvent('smash:opportunity');
@@ -216,15 +203,15 @@ export function useGameplayLoop({
 
     if (gameState === GameState.SERVING && servingPlayer === 'PLAYER') {
       // Hard pin player behind baseline for service on correct side.
-      targetZ = 11.3;
-      targetX = serveSide === 'DEUCE' ? 3.0 : -3.0;
+      targetZ = PLAYER_MOVEMENT_LIMITS.serveZ;
+      targetX = serveSide === 'DEUCE' ? PLAYER_MOVEMENT_LIMITS.deuceServeX : PLAYER_MOVEMENT_LIMITS.adServeX;
     }
 
     playerPos.current.x = THREE.MathUtils.lerp(playerPos.current.x, targetX, 0.95);
     playerPos.current.z = THREE.MathUtils.lerp(playerPos.current.z, targetZ, 0.95);
 
-    playerPos.current.x = THREE.MathUtils.clamp(playerPos.current.x, -5.5, 5.5);
-    playerPos.current.z = THREE.MathUtils.clamp(playerPos.current.z, 2, 11.5);
+    playerPos.current.x = THREE.MathUtils.clamp(playerPos.current.x, PLAYER_MOVEMENT_LIMITS.minX, PLAYER_MOVEMENT_LIMITS.maxX);
+    playerPos.current.z = THREE.MathUtils.clamp(playerPos.current.z, PLAYER_MOVEMENT_LIMITS.minZ, PLAYER_MOVEMENT_LIMITS.maxZ);
 
     if (gameState === GameState.PLAYING) {
       const activeSmash = smashOpportunity.current;
@@ -241,8 +228,16 @@ export function useGameplayLoop({
 
       if (smashOpportunity.current.active) {
         const smashTarget = smashOpportunity.current;
-        const assistedX = THREE.MathUtils.clamp(smashTarget.targetX, -5.3, 5.3);
-        const assistedZ = THREE.MathUtils.clamp(smashTarget.targetZ + 0.25, 2, OVERHEAD_SMASH_CONFIG.netDistanceThreshold);
+        const assistedX = THREE.MathUtils.clamp(
+          smashTarget.targetX,
+          PLAYER_MOVEMENT_LIMITS.smashAssistMinX,
+          PLAYER_MOVEMENT_LIMITS.smashAssistMaxX
+        );
+        const assistedZ = THREE.MathUtils.clamp(
+          smashTarget.targetZ + 0.25,
+          PLAYER_MOVEMENT_LIMITS.minZ,
+          OVERHEAD_SMASH_CONFIG.netDistanceThreshold
+        );
         const nextAssistX = THREE.MathUtils.lerp(playerPos.current.x, assistedX, OVERHEAD_SMASH_CONFIG.assistedPositionStrength);
         const nextAssistZ = THREE.MathUtils.lerp(playerPos.current.z, assistedZ, OVERHEAD_SMASH_CONFIG.assistedPositionStrength);
         playerPos.current.x += THREE.MathUtils.clamp(nextAssistX - playerPos.current.x, -OVERHEAD_SMASH_CONFIG.assistedMaxStep, OVERHEAD_SMASH_CONFIG.assistedMaxStep);
@@ -273,10 +268,17 @@ export function useGameplayLoop({
     // Serve Mechanics
     if (gameState === GameState.SERVING) {
       if (servingPlayer === 'PLAYER') {
-        ballRef.current?.reset([playerPos.current.x + 0.4, 1.5, playerPos.current.z - 0.2], [0, 0, 0]);
+        ballRef.current?.reset(
+          [playerPos.current.x + SERVE_POSITIONS.ballXOffset, SERVE_POSITIONS.ballHeight, playerPos.current.z - SERVE_POSITIONS.ballZOffset],
+          [0, 0, 0]
+        );
         if (isSwinging) {
           const serveVel = calculateLegalShot(
-            new THREE.Vector3(playerPos.current.x + 0.4, 1.5, playerPos.current.z - 0.2),
+            new THREE.Vector3(
+              playerPos.current.x + SERVE_POSITIONS.ballXOffset,
+              SERVE_POSITIONS.ballHeight,
+              playerPos.current.z - SERVE_POSITIONS.ballZOffset
+            ),
             true,
             serveSide,
             difficultyStats,
@@ -290,17 +292,24 @@ export function useGameplayLoop({
         }
       } else {
         // AI Serving logic
-        aiPos.current.z = -10.5; // Behind baseline
-        aiPos.current.x = serveSide === 'DEUCE' ? -3.0 : 3.0; // AI's deuce side is server's left (negative X)
+        aiPos.current.z = SERVE_POSITIONS.aiZ; // Behind baseline
+        aiPos.current.x = serveSide === 'DEUCE' ? SERVE_POSITIONS.aiDeuceX : SERVE_POSITIONS.aiAdX; // AI's deuce side is server's left (negative X)
 
-        ballRef.current?.reset([aiPos.current.x - 0.4, 1.5, aiPos.current.z + 0.2], [0, 0, 0]);
+        ballRef.current?.reset(
+          [aiPos.current.x - SERVE_POSITIONS.ballXOffset, SERVE_POSITIONS.ballHeight, aiPos.current.z + SERVE_POSITIONS.ballZOffset],
+          [0, 0, 0]
+        );
         // Wait briefly before AI serves so the player can read the next point.
         if (aiServeReadyAt.current === 0) {
-          aiServeReadyAt.current = state.clock.getElapsedTime() + 1.2;
+          aiServeReadyAt.current = state.clock.getElapsedTime() + SERVE_POSITIONS.aiDelaySeconds;
         }
         if (state.clock.getElapsedTime() >= aiServeReadyAt.current) {
           const serveVel = calculateLegalShot(
-            new THREE.Vector3(aiPos.current.x - 0.4, 1.5, aiPos.current.z + 0.2),
+            new THREE.Vector3(
+              aiPos.current.x - SERVE_POSITIONS.ballXOffset,
+              SERVE_POSITIONS.ballHeight,
+              aiPos.current.z + SERVE_POSITIONS.ballZOffset
+            ),
             true,
             serveSide,
             difficultyStats,
@@ -322,7 +331,7 @@ export function useGameplayLoop({
     // When missing, target a position that is always just out of reach (offset by 2.5 units)
     const missOffset = ballPos.x > 0 ? -2.5 : 2.5;
     const aiTargetX = ballPos.z < 0 ? (isMercyMiss ? ballPos.x + missOffset : ballPos.x) : 0;
-    const aiTargetZ = -9 + Math.sin(state.clock.getElapsedTime()) * 1;
+    const aiTargetZ = AI_BASELINE_POSITION.z + Math.sin(state.clock.getElapsedTime()) * AI_BASELINE_POSITION.wobbleAmount;
 
     aiPos.current.x += Math.sign(aiTargetX - aiPos.current.x) * Math.min(Math.abs(aiTargetX - aiPos.current.x), aiSpeed);
     aiPos.current.z += Math.sign(aiTargetZ - aiPos.current.z) * Math.min(Math.abs(aiTargetZ - aiPos.current.z), aiSpeed);
@@ -366,13 +375,13 @@ export function useGameplayLoop({
 
     // Net collision: if the ball crosses the net too low, the hitter loses the point.
     const crossedNet = (previousBallZ.current <= 0 && ballPos.z > 0) || (previousBallZ.current >= 0 && ballPos.z < 0);
-    if (crossedNet && ballPos.y < 1.05 && lastHitter) {
+    if (crossedNet && ballPos.y < NET_HEIGHT && lastHitter) {
       awardPoint(lastHitter === 'PLAYER' ? 'AI' : 'PLAYER', lastHitter === 'AI');
-    } else if (ballPos.z > 14) {
+    } else if (ballPos.z > OUT_OF_BOUNDS_LIMITS.playerBackZ) {
       awardPoint('AI', false);
-    } else if (ballPos.z < -14) {
+    } else if (ballPos.z < OUT_OF_BOUNDS_LIMITS.aiBackZ) {
       awardPoint('PLAYER', true);
-    } else if (Math.abs(ballPos.x) > 7) {
+    } else if (Math.abs(ballPos.x) > OUT_OF_BOUNDS_LIMITS.x) {
       // Out of bounds
       awardPoint(lastHitter === 'PLAYER' ? 'AI' : 'PLAYER', lastHitter !== 'PLAYER');
     }
