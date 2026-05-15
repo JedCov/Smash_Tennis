@@ -20,6 +20,47 @@ interface UseGameplayLoopOptions {
   difficultyStats: GameplayDifficultyStats;
 }
 
+type SmashOpportunity = {
+  active: boolean;
+  startedAt: number;
+  expiresAt: number;
+  targetX: number;
+  targetZ: number;
+};
+
+const OVERHEAD_SMASH_CONFIG = {
+  netDistanceThreshold: 3.5,
+  smashHeightThreshold: 2.6,
+  maxSmashHeight: 6.2,
+  playerForwardWindow: 3.0,
+  playerBackWindow: 1.2,
+  lateralWindow: 2.5,
+  timingWindow: 0.95,
+  slowdownAmount: 0.45,
+  autoAlignmentStrength: 0.16,
+  assistedPositionStrength: 0.12,
+  assistedMaxStep: 0.09,
+  smashSpeedMultiplier: 2.3,
+  smashDownwardVelocity: -2.8,
+  weakReturnSpeedMultiplier: 0.72,
+  failWeakReturnRadius: 1.8,
+  cameraShakeDuration: 0.32,
+  cameraShakeIntensity: 0.18,
+  retriggerCooldown: 0.9
+};
+
+const createEmptySmashOpportunity = (): SmashOpportunity => ({
+  active: false,
+  startedAt: 0,
+  expiresAt: 0,
+  targetX: 0,
+  targetZ: 0
+});
+
+function triggerGameplayEvent(name: string) {
+  window.dispatchEvent(new CustomEvent(name));
+}
+
 export function useGameplayLoop({
   onScore,
   gameState,
@@ -32,16 +73,23 @@ export function useGameplayLoop({
   const ballRef = useRef<BallHandle>(null);
   const playerPos = useRef(new THREE.Vector3(0, 0, 9));
   const aiPos = useRef(new THREE.Vector3(0, 0, -9));
+  const playerFacingY = useRef(Math.PI);
   const keys = useRef<{ [key: string]: boolean }>({});
   const mousePos = useRef({ x: 0, y: 0 });
   const { camera } = useThree();
 
-  const [lastHitter, setLastHitter] = useState<PlayerType | null>(null);
-  const [isVisualSwinging, setIsVisualSwinging] = useState(false);
+  const smashOpportunity = useRef<SmashOpportunity>(createEmptySmashOpportunity());
+  const smashCooldownUntil = useRef(0);
+  const cameraShakeUntil = useRef(0);
   const consecutiveReturns = useRef(0);
   const previousBallZ = useRef(0);
   const pointEndedRef = useRef(false);
   const aiServeReadyAt = useRef(0);
+
+  const [lastHitter, setLastHitter] = useState<PlayerType | null>(null);
+  const [isVisualSwinging, setIsVisualSwinging] = useState(false);
+  const [isVisualSmashing, setIsVisualSmashing] = useState(false);
+  const [isSmashOpportunityVisible, setIsSmashOpportunityVisible] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,9 +132,66 @@ export function useGameplayLoop({
     pointEndedRef.current = false;
     aiServeReadyAt.current = 0;
     consecutiveReturns.current = 0;
+    smashOpportunity.current = createEmptySmashOpportunity();
+    setIsSmashOpportunityVisible(false);
+    setIsVisualSmashing(false);
+    playerFacingY.current = Math.PI;
   }, []);
 
-  // Handle game start/reset.
+  const endSmashOpportunity = () => {
+    smashOpportunity.current = createEmptySmashOpportunity();
+    setIsSmashOpportunityVisible(false);
+  };
+
+  const startSmashOpportunity = (now: number, ballPos: THREE.Vector3) => {
+    smashOpportunity.current = {
+      active: true,
+      startedAt: now,
+      expiresAt: now + OVERHEAD_SMASH_CONFIG.timingWindow,
+      targetX: ballPos.x,
+      targetZ: THREE.MathUtils.clamp(ballPos.z, 2.1, OVERHEAD_SMASH_CONFIG.netDistanceThreshold)
+    };
+    setIsSmashOpportunityVisible(true);
+    triggerGameplayEvent('smash:opportunity');
+  };
+
+  const performOverheadSmash = (ballPos: THREE.Vector3, now: number) => {
+    const targetX = THREE.MathUtils.clamp((Math.random() - 0.5) * 7.5, -4.5, 4.5);
+    const targetZ = -9.5;
+    const travelTime = 0.58;
+    const smashVelocity = new THREE.Vector3(
+      (targetX - ballPos.x) / travelTime,
+      OVERHEAD_SMASH_CONFIG.smashDownwardVelocity,
+      (targetZ - ballPos.z) / travelTime
+    ).multiplyScalar(OVERHEAD_SMASH_CONFIG.smashSpeedMultiplier * difficultyStats.gameDifficultyMultiplier);
+
+    ballRef.current?.setVelocity(smashVelocity);
+    setLastHitter('PLAYER');
+    consecutiveReturns.current++;
+    cameraShakeUntil.current = now + OVERHEAD_SMASH_CONFIG.cameraShakeDuration;
+    smashCooldownUntil.current = now + OVERHEAD_SMASH_CONFIG.retriggerCooldown;
+    setIsVisualSmashing(true);
+    setTimeout(() => setIsVisualSmashing(false), 320);
+    endSmashOpportunity();
+    triggerGameplayEvent('smash:activated');
+    triggerGameplayEvent('vfx:overhead-smash');
+    triggerGameplayEvent('audio:overhead-smash');
+    playHitSound();
+    keys.current['MouseDown'] = false;
+    keys.current['Space'] = false;
+  };
+
+  const performWeakSmashFailReturn = (ballPos: THREE.Vector3) => {
+    const weakReturnVel = calculateLegalShot(ballPos, false, serveSide, difficultyStats).multiplyScalar(
+      OVERHEAD_SMASH_CONFIG.weakReturnSpeedMultiplier
+    );
+    ballRef.current?.setVelocity(weakReturnVel);
+    setLastHitter('PLAYER');
+    consecutiveReturns.current++;
+    triggerGameplayEvent('smash:weak-return');
+    playHitSound();
+  };
+
   useEffect(() => {
     if (gameState === GameState.SERVING) {
       resetBall(servingPlayer);
@@ -101,7 +206,9 @@ export function useGameplayLoop({
     mousePos.current.y = state.mouse.y;
 
     const ballPos = ballRef.current?.getPosition() || new THREE.Vector3();
+    const ballVel = ballRef.current?.getVelocity() || new THREE.Vector3();
     const isSwinging = keys.current['Space'] || keys.current['MouseDown'];
+    const now = state.clock.getElapsedTime();
 
     // Player Movement (High-response Mouse follow)
     let targetX = mousePos.current.x * 12.0;
@@ -118,6 +225,50 @@ export function useGameplayLoop({
 
     playerPos.current.x = THREE.MathUtils.clamp(playerPos.current.x, -5.5, 5.5);
     playerPos.current.z = THREE.MathUtils.clamp(playerPos.current.z, 2, 11.5);
+
+    if (gameState === GameState.PLAYING) {
+      const activeSmash = smashOpportunity.current;
+      const nearNet = playerPos.current.z <= OVERHEAD_SMASH_CONFIG.netDistanceThreshold;
+      const ballIsHigh = ballPos.y >= OVERHEAD_SMASH_CONFIG.smashHeightThreshold && ballPos.y <= OVERHEAD_SMASH_CONFIG.maxSmashHeight;
+      const ballIsIncoming = lastHitter === 'AI' && ballVel.z > 0.35;
+      const ballIsInFront = ballPos.z >= playerPos.current.z - OVERHEAD_SMASH_CONFIG.playerBackWindow && ballPos.z <= playerPos.current.z + OVERHEAD_SMASH_CONFIG.playerForwardWindow;
+      const ballIsReachableSideways = Math.abs(ballPos.x - playerPos.current.x) <= OVERHEAD_SMASH_CONFIG.lateralWindow;
+      const canStartSmash = !activeSmash.active && now >= smashCooldownUntil.current && nearNet && ballIsHigh && ballIsIncoming && ballIsInFront && ballIsReachableSideways;
+
+      if (canStartSmash) {
+        startSmashOpportunity(now, ballPos);
+      }
+
+      if (smashOpportunity.current.active) {
+        const smashTarget = smashOpportunity.current;
+        const assistedX = THREE.MathUtils.clamp(smashTarget.targetX, -5.3, 5.3);
+        const assistedZ = THREE.MathUtils.clamp(smashTarget.targetZ + 0.25, 2, OVERHEAD_SMASH_CONFIG.netDistanceThreshold);
+        const nextAssistX = THREE.MathUtils.lerp(playerPos.current.x, assistedX, OVERHEAD_SMASH_CONFIG.assistedPositionStrength);
+        const nextAssistZ = THREE.MathUtils.lerp(playerPos.current.z, assistedZ, OVERHEAD_SMASH_CONFIG.assistedPositionStrength);
+        playerPos.current.x += THREE.MathUtils.clamp(nextAssistX - playerPos.current.x, -OVERHEAD_SMASH_CONFIG.assistedMaxStep, OVERHEAD_SMASH_CONFIG.assistedMaxStep);
+        playerPos.current.z += THREE.MathUtils.clamp(nextAssistZ - playerPos.current.z, -OVERHEAD_SMASH_CONFIG.assistedMaxStep, OVERHEAD_SMASH_CONFIG.assistedMaxStep);
+
+        const targetFacing = Math.PI + THREE.MathUtils.clamp((playerPos.current.x - ballPos.x) * 0.14, -0.35, 0.35);
+        playerFacingY.current = THREE.MathUtils.lerp(playerFacingY.current, targetFacing, OVERHEAD_SMASH_CONFIG.autoAlignmentStrength);
+
+        if (isSwinging && now <= smashTarget.expiresAt) {
+          performOverheadSmash(ballPos, now);
+          return;
+        }
+
+        if (now > smashTarget.expiresAt || ballPos.z > playerPos.current.z + OVERHEAD_SMASH_CONFIG.playerForwardWindow) {
+          const closeEnoughForWeakReturn = Math.abs(ballPos.x - playerPos.current.x) <= OVERHEAD_SMASH_CONFIG.failWeakReturnRadius && ballPos.y < OVERHEAD_SMASH_CONFIG.maxSmashHeight;
+          endSmashOpportunity();
+          smashCooldownUntil.current = now + OVERHEAD_SMASH_CONFIG.retriggerCooldown;
+          triggerGameplayEvent('smash:missed');
+          if (closeEnoughForWeakReturn) {
+            performWeakSmashFailReturn(ballPos);
+          }
+        }
+      } else {
+        playerFacingY.current = THREE.MathUtils.lerp(playerFacingY.current, Math.PI, 0.12);
+      }
+    }
 
     // Serve Mechanics
     if (gameState === GameState.SERVING) {
@@ -192,7 +343,7 @@ export function useGameplayLoop({
     }
 
     // Player Hit Detection (Guaranteed legal shot)
-    if (isSwinging && ballPos.z > 3.0 && ballPos.z < 11.0 && lastHitter !== 'PLAYER' && ballPos.y < 4.0) {
+    if (!smashOpportunity.current.active && isSwinging && ballPos.z > 3.0 && ballPos.z < 11.0 && lastHitter !== 'PLAYER' && ballPos.y < 4.0) {
       // Hit radius shrinks as games progress.
       if (Math.abs(ballPos.x - playerPos.current.x) < difficultyStats.racketAccuracyRadius * 2.8) {
         const playerReturnVel = calculateLegalShot(ballPos, false, serveSide, difficultyStats);
@@ -229,9 +380,11 @@ export function useGameplayLoop({
 
     // Camera follow (Fixed-Height Arcade perspective)
     const cameraSpeed = 0.1;
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerPos.current.x * 0.4, cameraSpeed);
-    camera.position.y = 7;
-    camera.position.z = playerPos.current.z + 8;
+    const shakeRemaining = Math.max(0, cameraShakeUntil.current - now);
+    const shake = shakeRemaining > 0 ? OVERHEAD_SMASH_CONFIG.cameraShakeIntensity * (shakeRemaining / OVERHEAD_SMASH_CONFIG.cameraShakeDuration) : 0;
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerPos.current.x * 0.4, cameraSpeed) + (Math.random() - 0.5) * shake;
+    camera.position.y = 7 + (Math.random() - 0.5) * shake;
+    camera.position.z = playerPos.current.z + 8 + (Math.random() - 0.5) * shake;
     camera.lookAt(0, 0, -3);
   });
 
@@ -239,6 +392,10 @@ export function useGameplayLoop({
     ballRef,
     playerPos,
     aiPos,
-    isVisualSwinging
+    playerFacingY,
+    isVisualSwinging,
+    isVisualSmashing,
+    isSmashOpportunityVisible,
+    ballTimeScale: isSmashOpportunityVisible ? OVERHEAD_SMASH_CONFIG.slowdownAmount : 1
   };
 }
