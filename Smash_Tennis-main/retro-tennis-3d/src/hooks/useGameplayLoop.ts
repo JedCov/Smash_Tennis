@@ -5,6 +5,7 @@ import type { BallHandle } from '../components/Ball';
 import { calculateLegalShot, type ServeSide, type ShotDifficultyStats } from '../gameplay/shotPhysics';
 import {
   AI_BASELINE_POSITION,
+  AI_MISS_DRAMA,
   NET_HEIGHT,
   OUT_OF_BOUNDS_LIMITS,
   OVERHEAD_SMASH_CONFIG,
@@ -72,9 +73,11 @@ export function useGameplayLoop({
   const previousBallZ = useRef(0);
   const pointEndedRef = useRef(false);
   const aiServeReadyAt = useRef(0);
+  const aiMissSwingTriggered = useRef(false);
 
   const [lastHitter, setLastHitter] = useState<PlayerType | null>(null);
   const [isVisualSmashing, setIsVisualSmashing] = useState(false);
+  const [isAiVisualSwinging, setIsAiVisualSwinging] = useState(false);
   const [isSmashOpportunityVisible, setIsSmashOpportunityVisible] = useState(false);
 
 
@@ -89,10 +92,12 @@ export function useGameplayLoop({
     previousBallZ.current = server === 'PLAYER' ? playerPos.current.z - SERVE_POSITIONS.ballZOffset : aiPos.current.z + SERVE_POSITIONS.ballZOffset;
     pointEndedRef.current = false;
     aiServeReadyAt.current = 0;
+    aiMissSwingTriggered.current = false;
     consecutiveReturns.current = 0;
     smashOpportunity.current = createEmptySmashOpportunity();
     setIsSmashOpportunityVisible(false);
     setIsVisualSmashing(false);
+    setIsAiVisualSwinging(false);
     playerFacingY.current = Math.PI;
   }, []);
 
@@ -290,15 +295,41 @@ export function useGameplayLoop({
 
     // AI movement (Slower and more arcade-like)
     const isMercyMiss = consecutiveReturns.current >= targetRallyLength;
-    const aiBaseSpeed = isMercyMiss ? 1.5 : 3.5;
-    const aiSpeed = aiBaseSpeed * difficultyStats.gameDifficultyMultiplier * delta;
-    // When missing, target a position that is always just out of reach (offset by 2.5 units)
-    const missOffset = ballPos.x > 0 ? -2.5 : 2.5;
-    const aiTargetX = ballPos.z < 0 ? (isMercyMiss ? ballPos.x + missOffset : ballPos.x) : 0;
+    const isBallOnAiSide = ballPos.z < 0;
+    const aiBaseSpeed = 3.5;
+    const aiSpeed =
+      aiBaseSpeed *
+      (isMercyMiss ? AI_MISS_DRAMA.lungeSpeedMultiplier : 1) *
+      difficultyStats.gameDifficultyMultiplier *
+      delta;
+    const aiTargetX = isBallOnAiSide
+      ? isMercyMiss
+        ? THREE.MathUtils.clamp(
+            ballPos.x - (Math.sign(ballPos.x - aiPos.current.x) || 1) * AI_MISS_DRAMA.nearMissDistance,
+            PLAYER_MOVEMENT_LIMITS.minX,
+            PLAYER_MOVEMENT_LIMITS.maxX
+          )
+        : ballPos.x
+      : 0;
     const aiTargetZ = AI_BASELINE_POSITION.z + Math.sin(state.clock.getElapsedTime()) * AI_BASELINE_POSITION.wobbleAmount;
 
     aiPos.current.x += Math.sign(aiTargetX - aiPos.current.x) * Math.min(Math.abs(aiTargetX - aiPos.current.x), aiSpeed);
     aiPos.current.z += Math.sign(aiTargetZ - aiPos.current.z) * Math.min(Math.abs(aiTargetZ - aiPos.current.z), aiSpeed);
+
+    const shouldShowAiMissSwing =
+      isMercyMiss &&
+      !aiMissSwingTriggered.current &&
+      lastHitter === 'PLAYER' &&
+      ballPos.z <= AI_MISS_DRAMA.desperationZoneZ &&
+      ballPos.z > OUT_OF_BOUNDS_LIMITS.aiBackZ &&
+      ballPos.y < 3.5 &&
+      Math.abs(ballPos.x - aiPos.current.x) <= AI_MISS_DRAMA.lateSwingDistance;
+
+    if (shouldShowAiMissSwing) {
+      aiMissSwingTriggered.current = true;
+      setIsAiVisualSwinging(true);
+      setTimeout(() => setIsAiVisualSwinging(false), AI_MISS_DRAMA.swingDurationMs);
+    }
 
     // AI Hit Detection
     if (ballPos.z < -8 && ballPos.z > -9.5 && lastHitter === 'PLAYER' && ballPos.y < 3.5 && !isMercyMiss) {
@@ -368,6 +399,7 @@ export function useGameplayLoop({
     playerFacingY,
     isVisualSwinging,
     isVisualSmashing,
+    isAiVisualSwinging,
     isSmashOpportunityVisible,
     ballTimeScale: isSmashOpportunityVisible ? OVERHEAD_SMASH_CONFIG.slowdownAmount : 1
   };

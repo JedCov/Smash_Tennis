@@ -67,6 +67,14 @@ export const SHOT_TARGETS = {
   serveRandomXRange: 2.0
 } as const;
 
+export const AI_MISS_DRAMA = {
+  lungeSpeedMultiplier: 1.35,
+  nearMissDistance: 0.55,
+  desperationZoneZ: -7.4,
+  lateSwingDistance: 1.15,
+  swingDurationMs: 260
+} as const;
+
 export const OVERHEAD_SMASH_CONFIG = {
   netDistanceThreshold: 3.5,
   smashHeightThreshold: 2.6,

@@ -13,7 +13,7 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 ## Features
 
 - Low-poly 3D tennis court, ball, rackets, players, net, and camera.
-- Player-vs-AI rallies with a gradually increasing rally target and speed.
+- Player-vs-AI rallies with a gradually increasing rally target, speed, and dramatic Hidalgo near-miss behavior when the player is meant to win a rally.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server indicators, brief point-result pause, and tiebreak support.
 - Clear serve prompts, smash-ready/missed feedback, brief point-result banner, scoreboard, sound effects, and replay button.
@@ -74,7 +74,7 @@ Current check notes:
 - `src/hooks/usePlayerInput.ts` keeps keyboard, mouse, click, Space, and swing animation input handling in one place.
 - `src/hooks/useTennisGame.ts` manages tennis scoring and match state.
 - `src/gameplay/shotPhysics.ts` calculates shot direction and speed.
-- `src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
+- `src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI near-miss drama, and smash tuning numbers in one place.
 - `scripts/copy-404.mjs` copies the built app shell to `dist/404.html` after production builds so GitHub Pages refreshes work.
 
 ## Known issues
@@ -84,7 +84,7 @@ Current check notes:
 
 ## Planned improvements
 
-- Keep tuning rally feel, AI difficulty, and smash timing.
+- Keep tuning rally feel, AI difficulty, Hidalgo near-miss drama, and smash timing.
 - Consider code-splitting later if the production bundle size becomes a real loading problem.
 
 ## Notes

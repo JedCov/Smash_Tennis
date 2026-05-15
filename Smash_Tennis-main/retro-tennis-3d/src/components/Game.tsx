@@ -63,6 +63,7 @@ function GameScene({
     playerFacingY,
     isVisualSwinging,
     isVisualSmashing,
+    isAiVisualSwinging,
     isSmashOpportunityVisible,
     ballTimeScale
   } = useGameplayLoop({
@@ -90,7 +91,13 @@ function GameScene({
         isSmashing={isVisualSmashing}
         facingRotationYRef={playerFacingY}
       />
-      <Character initialPosition={[0, 0, -9]} positionRef={aiPos} color="#ef4444" isAI />
+      <Character
+        initialPosition={[0, 0, -9]}
+        positionRef={aiPos}
+        color="#ef4444"
+        isAI
+        isSwinging={isAiVisualSwinging}
+      />
       <Ball
         ref={ballRef}
         isActive={gameState === GameState.PLAYING}
