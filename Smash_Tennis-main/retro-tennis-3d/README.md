@@ -1,35 +1,31 @@
 # Retro Tennis 3D
 
-## Play the game
-
-Live playable version: https://jedbcov-coder.github.io/Smash_Tennis/
-
 Retro Tennis 3D is a simple, retro-styled browser tennis game. You play as Blake against Hidalgo, an AI opponent, on a bright 3D court with arcade pacing and tennis-style scoring.
 
-## Project type
+## Live demo / playable link
 
-This is a React + Vite browser game that uses Three.js through React Three Fiber. It is built into a static `dist` folder for GitHub Pages.
+Live version: https://jedbcov-coder.github.io/Smash_Tennis/
 
-## Controls
+## What this project does
+
+This is a React + Vite browser game that uses Three.js through React Three Fiber. It builds into a static `dist` folder for GitHub Pages.
+
+## Features
+
+- Low-poly 3D tennis court, ball, rackets, players, net, and camera.
+- Player-vs-AI rallies with a gradually increasing rally target and speed.
+- Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, camera shake hooks, and weak-return miss handling.
+- Tennis scoring with points, games, sets, server indicators, and tiebreak support.
+- Clear serve prompts, point-winner feedback, scoreboard, sound effects, and replay button.
+- Lightweight Vite build for easy local testing and static deployment.
+
+## Controls / How to use
 
 - Move player: move your mouse around the screen.
 - Serve: click or press Space when the prompt says it is your serve.
 - Swing / smash: click or press Space when the ball reaches your side. If you are close to the net and a high ball comes overhead, click or press Space during the glowing slow-motion window to smash it.
 
-## Main features
-
-- Low-poly 3D tennis court, ball, rackets, players, net, and camera.
-- Player-vs-AI rallies with a gradually increasing rally target and speed.
-- New net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, camera shake hooks, and weak-return miss handling.
-- Tennis scoring with points, games, sets, server indicators, and tiebreak support.
-- Clear serve prompts, point-winner feedback, scoreboard, sound effects, and replay button.
-- Lightweight Vite build for easy local testing and static deployment.
-
-## Code organization
-
-The main game screen is split into small files so it is easier to maintain: `Game.tsx` wires the scene together, `GameHud.tsx` shows the in-game overlays, `GameMenus.tsx` shows the start and game-over screens, `useGameplayLoop.ts` runs the frame-by-frame gameplay logic, and `shotPhysics.ts` calculates shot direction and speed.
-
-## Run locally
+## How to run locally
 
 **Prerequisite:** install Node.js first.
 
@@ -50,6 +46,8 @@ The main game screen is split into small files so it is easier to maintain: `Gam
 
 ## Useful checks
 
+Run these commands from this `retro-tennis-3d` folder:
+
 ```bash
 npm run lint
 npm run build
@@ -58,7 +56,35 @@ npm run preview -- --host 127.0.0.1 --port 4173
 
 `npm run lint` checks that TypeScript can understand the project. `npm run build` creates the production-ready files in `dist`. `npm run preview` lets you test the built GitHub Pages version locally at `http://127.0.0.1:4173/Smash_Tennis/`.
 
-## Deployment notes
+Current check notes:
+
+- `npm run lint` passes.
+- `npm run build` passes and creates `dist/404.html` for GitHub Pages.
+- The build can show a Vite chunk-size warning because the 3D/game libraries bundle into one large JavaScript file. This is a warning, not a build failure.
+- npm can show `Unknown env config "http-proxy"` in this environment. This is an environment warning, not a project error.
+
+## Project structure
+
+- `src/App.tsx` starts the main app screen.
+- `src/components/Game.tsx` wires the 3D court, players, ball, menus, and HUD together.
+- `src/components/GameHud.tsx` shows the in-game overlays and scoreboard.
+- `src/components/GameMenus.tsx` shows the start and game-over screens.
+- `src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
+- `src/hooks/useTennisGame.ts` manages tennis scoring and match state.
+- `src/gameplay/shotPhysics.ts` calculates shot direction and speed.
+- `scripts/copy-404.mjs` copies the built app shell to `dist/404.html` after production builds so GitHub Pages refreshes work.
+
+## Known issues
+
+- Production builds currently show a non-blocking Vite chunk-size warning because the game uses large 3D dependencies. The build still completes successfully.
+- npm may show a non-blocking `http-proxy` environment warning on this machine. No app change is needed for that warning.
+
+## Planned improvements
+
+- Keep tuning rally feel, AI difficulty, and smash timing.
+- Consider code-splitting later if the production bundle size becomes a real loading problem.
+
+## Notes
 
 This repository is set up to publish the latest game build with GitHub Pages. The workflow in `../.github/workflows/deploy.yml` builds this Vite app and publishes the generated `dist` folder. The production build also creates a `404.html` fallback and a `.nojekyll` file so GitHub Pages serves the game correctly.
 
