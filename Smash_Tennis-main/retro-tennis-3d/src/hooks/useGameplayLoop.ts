@@ -133,7 +133,6 @@ export function useGameplayLoop({
     endSmashOpportunity();
     triggerGameplayEvent('smash:activated');
     triggerGameplayEvent('vfx:overhead-smash');
-    triggerGameplayEvent('audio:overhead-smash');
     playHitSound();
     clearSwingInput();
   };
