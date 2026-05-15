@@ -86,14 +86,14 @@ Current check notes:
 
 ## Notes
 
-This repository is set up to publish the latest game build with GitHub Pages. The workflow in `../.github/workflows/deploy.yml` builds this Vite app and publishes the generated `dist` folder. The production build also creates a `404.html` fallback and a `.nojekyll` file so GitHub Pages serves the game correctly.
+This repository is set up to publish the latest game build with GitHub Pages. The workflow in `../../.github/workflows/deploy.yml` builds this Vite app from `Smash_Tennis-main/retro-tennis-3d` and publishes the generated `dist` folder. The production build creates a `404.html` fallback, and the workflow adds a `.nojekyll` marker file so GitHub Pages serves the game correctly.
 
 Important GitHub Pages settings:
 
 1. Open the repository on GitHub.
 2. Go to **Settings → Pages**.
 3. Set **Build and deployment → Source** to **GitHub Actions**.
-4. Push or merge changes into `main`.
+4. Push or merge changes into `main`, or start the workflow manually from the GitHub Actions tab.
 5. Open https://jedbcov-coder.github.io/Smash_Tennis/ after the deployment finishes.
 
-The Vite base path is set to `/Smash_Tennis/` because GitHub Pages serves this project from `https://jedbcov-coder.github.io/Smash_Tennis/`, not from the root of the domain.
+The Vite base path stays set to `/Smash_Tennis/` in `vite.config.ts` because GitHub Pages serves this project from `https://jedbcov-coder.github.io/Smash_Tennis/`, not from the root of the domain.
