@@ -63,7 +63,8 @@ function GameScene({
     playerFacingY,
     isVisualSwinging,
     isVisualSmashing,
-    isAiVisualSwinging,
+    isAiSwinging,
+    isAiMissing,
     isSmashOpportunityVisible,
     ballTimeScale
   } = useGameplayLoop({
@@ -96,7 +97,8 @@ function GameScene({
         positionRef={aiPos}
         color="#ef4444"
         isAI
-        isSwinging={isAiVisualSwinging}
+        isSwinging={isAiSwinging}
+        isMissing={isAiMissing}
       />
       <Ball
         ref={ballRef}

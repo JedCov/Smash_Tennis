@@ -13,10 +13,10 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
 ## Features
 
 - 3D tennis court with arcade-style camera and low-poly players.
-- Player-vs-AI rallies with configurable rally pacing.
+- Player-vs-AI rallies with configurable rally pacing and quick Hidalgo swing animations.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server rotation, brief point-result pause, and tiebreak support.
-- Scoreboard, serve prompts, smash-ready/missed feedback, brief point-result banner, sound effects, and replay flow.
+- Scoreboard, serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, sound effects, and replay flow.
 - Lightweight browser build powered by React, Vite, Three.js, and React Three Fiber.
 
 ## Controls / How to use
@@ -65,7 +65,7 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
 
 ## Planned improvements
 
-- Keep tuning rally feel, AI difficulty, and smash timing.
+- Keep tuning rally feel, AI difficulty, Hidalgo swing/miss animation feel, and smash timing.
 - Consider code-splitting later if the production bundle size becomes a real loading problem.
 
 ## Notes
