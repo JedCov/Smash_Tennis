@@ -15,8 +15,8 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 - Low-poly 3D tennis court, ball, rackets, players, net, and camera.
 - Player-vs-AI rallies with a gradually increasing rally target and speed.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, camera shake hooks, and weak-return miss handling.
-- Tennis scoring with points, games, sets, server indicators, and tiebreak support.
-- Clear serve prompts, point-winner feedback, scoreboard, sound effects, and replay button.
+- Tennis scoring with points, games, sets, server indicators, brief point-result pause, and tiebreak support.
+- Clear serve prompts, brief point-result banner, scoreboard, sound effects, and replay button.
 - Lightweight Vite build for easy local testing and static deployment.
 
 ## Controls / How to use

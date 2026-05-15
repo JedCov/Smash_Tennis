@@ -91,17 +91,21 @@ export function GameHud({
         </div>
       </div>
 
+      {/* Point Result Banner */}
+      {gameState === GameState.SCORING && lastPointWinner && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className={`px-8 py-5 text-5xl font-black italic uppercase tracking-tighter text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.35)] ${lastPointWinner === 'PLAYER' ? 'bg-blue-600' : 'bg-red-600'}`}>
+            {lastPointWinner === 'PLAYER' ? 'Blake Point' : 'Hidalgo Point'}
+          </div>
+        </div>
+      )}
+
       {/* Serving Instruction */}
       {gameState === GameState.SERVING && (
         <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
           <div className="text-white text-3xl font-black italic tracking-tighter drop-shadow-md animate-pulse uppercase">
             {servingPlayer === 'PLAYER' ? 'Your Serve' : 'AI Service'}
           </div>
-          {lastPointWinner && (
-            <div className={`mt-3 px-4 py-2 text-xs font-black uppercase tracking-widest ${lastPointWinner === 'PLAYER' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}`}>
-              {lastPointWinner === 'PLAYER' ? 'Point Blake' : 'Point Hidalgo'}
-            </div>
-          )}
           {servingPlayer === 'PLAYER' && (
             <div className="text-white/60 text-sm font-bold mt-2 uppercase tracking-widest">
               Press Space or Click to Serve
