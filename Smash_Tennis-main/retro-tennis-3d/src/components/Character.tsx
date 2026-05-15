@@ -9,10 +9,20 @@ interface CharacterProps {
   isAI?: boolean;
   isSwinging?: boolean;
   isSmashing?: boolean;
+  isMissing?: boolean;
   facingRotationYRef?: React.MutableRefObject<number>;
 }
 
-export function Character({ initialPosition, positionRef, color, isAI = false, isSwinging = false, isSmashing = false, facingRotationYRef }: CharacterProps) {
+export function Character({
+  initialPosition,
+  positionRef,
+  color,
+  isAI = false,
+  isSwinging = false,
+  isSmashing = false,
+  isMissing = false,
+  facingRotationYRef
+}: CharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const leftArmRef = useRef<THREE.Mesh>(null);
   const rightArmRef = useRef<THREE.Mesh>(null);
@@ -31,24 +41,33 @@ export function Character({ initialPosition, positionRef, color, isAI = false, i
 
     if (bodyRef.current) {
         bodyRef.current.position.y = Math.sin(time * 5) * 0.05 + 0.75;
+        bodyRef.current.rotation.z = isMissing ? -0.28 : 0;
     }
 
     // Swing animation (cleaner swipe)
-    if (isSmashing && racketRef.current) {
+    if (isMissing && racketRef.current) {
+        racketRef.current.rotation.x = -Math.PI * 0.65;
+        racketRef.current.rotation.y = -0.9 + Math.sin(time * 34) * 0.3;
+        racketRef.current.rotation.z = -0.45;
+        racketRef.current.position.set(0.65, 0.95, 0.35);
+    } else if (isSmashing && racketRef.current) {
         racketRef.current.rotation.x = -Math.PI * 0.85;
         racketRef.current.rotation.y = Math.sin(time * 40) * 0.25;
-        racketRef.current.position.y = 1.0;
+        racketRef.current.rotation.z = 0;
+        racketRef.current.position.set(0.4, 1.0, 0.2);
     } else if (isSwinging && racketRef.current) {
         racketRef.current.rotation.x = -Math.PI / 2;
         racketRef.current.rotation.y = Math.sin(time * 30) * 0.5;
-        racketRef.current.position.y = 0.7;
+        racketRef.current.rotation.z = 0;
+        racketRef.current.position.set(0.4, 0.7, 0.2);
     } else if (racketRef.current) {
         racketRef.current.rotation.x = Math.PI / 4;
         racketRef.current.rotation.y = 0;
-        racketRef.current.position.y = 0.7;
+        racketRef.current.rotation.z = 0;
+        racketRef.current.position.set(0.4, 0.7, 0.2);
     }
 
-    groupRef.current.rotation.y = facingRotationYRef?.current ?? (isAI ? 0 : Math.PI);
+    groupRef.current.rotation.y = (facingRotationYRef?.current ?? (isAI ? 0 : Math.PI)) + (isMissing ? -0.18 : 0);
   });
 
   return (

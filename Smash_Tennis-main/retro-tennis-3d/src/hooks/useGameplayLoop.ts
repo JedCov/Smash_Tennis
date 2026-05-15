@@ -74,12 +74,27 @@ export function useGameplayLoop({
   const pointEndedRef = useRef(false);
   const aiServeReadyAt = useRef(0);
   const aiMissSwingTriggered = useRef(false);
+  const aiSwingTimeout = useRef<number | null>(null);
 
   const [lastHitter, setLastHitter] = useState<PlayerType | null>(null);
   const [isVisualSmashing, setIsVisualSmashing] = useState(false);
-  const [isAiVisualSwinging, setIsAiVisualSwinging] = useState(false);
+  const [isAiSwinging, setIsAiSwinging] = useState(false);
+  const [isAiMissing, setIsAiMissing] = useState(false);
   const [isSmashOpportunityVisible, setIsSmashOpportunityVisible] = useState(false);
 
+  const triggerAiSwing = useCallback((missing = false) => {
+    if (aiSwingTimeout.current !== null) {
+      window.clearTimeout(aiSwingTimeout.current);
+    }
+
+    setIsAiSwinging(true);
+    setIsAiMissing(missing);
+    aiSwingTimeout.current = window.setTimeout(() => {
+      setIsAiSwinging(false);
+      setIsAiMissing(false);
+      aiSwingTimeout.current = null;
+    }, missing ? AI_MISS_DRAMA.swingDurationMs : 260);
+  }, []);
 
   const resetBall = useCallback((server: PlayerType) => {
     if (!ballRef.current) return;
@@ -97,7 +112,12 @@ export function useGameplayLoop({
     smashOpportunity.current = createEmptySmashOpportunity();
     setIsSmashOpportunityVisible(false);
     setIsVisualSmashing(false);
-    setIsAiVisualSwinging(false);
+    setIsAiSwinging(false);
+    setIsAiMissing(false);
+    if (aiSwingTimeout.current !== null) {
+      window.clearTimeout(aiSwingTimeout.current);
+      aiSwingTimeout.current = null;
+    }
     playerFacingY.current = Math.PI;
   }, []);
 
@@ -327,8 +347,7 @@ export function useGameplayLoop({
 
     if (shouldShowAiMissSwing) {
       aiMissSwingTriggered.current = true;
-      setIsAiVisualSwinging(true);
-      setTimeout(() => setIsAiVisualSwinging(false), AI_MISS_DRAMA.swingDurationMs);
+      triggerAiSwing(true);
     }
 
     // AI Hit Detection
@@ -342,6 +361,7 @@ export function useGameplayLoop({
         const aiReturnVel = new THREE.Vector3((tX - ballPos.x) / t, vy, (tZ - ballPos.z) / t);
         ballRef.current?.setVelocity(aiReturnVel.multiplyScalar(difficultyStats.gameDifficultyMultiplier));
         setLastHitter('AI');
+        triggerAiSwing();
         playHitSound();
       }
     }
@@ -399,7 +419,8 @@ export function useGameplayLoop({
     playerFacingY,
     isVisualSwinging,
     isVisualSmashing,
-    isAiVisualSwinging,
+    isAiSwinging,
+    isAiMissing,
     isSmashOpportunityVisible,
     ballTimeScale: isSmashOpportunityVisible ? OVERHEAD_SMASH_CONFIG.slowdownAmount : 1
   };

@@ -13,10 +13,10 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 ## Features
 
 - Low-poly 3D tennis court, ball, rackets, players, net, and camera.
-- Player-vs-AI rallies with a gradually increasing rally target, speed, and dramatic Hidalgo near-miss behavior when the player is meant to win a rally.
+- Player-vs-AI rallies with a gradually increasing rally target, speed, quick Hidalgo return swings, and dramatic Hidalgo near-miss animation when the player is meant to win a rally.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server indicators, brief point-result pause, and tiebreak support.
-- Clear serve prompts, smash-ready/missed feedback, brief point-result banner, scoreboard, sound effects, and replay button.
+- Clear serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, scoreboard, sound effects, and replay button.
 - Lightweight Vite build for easy local testing and static deployment.
 
 ## Controls / How to use
@@ -84,7 +84,7 @@ Current check notes:
 
 ## Planned improvements
 
-- Keep tuning rally feel, AI difficulty, Hidalgo near-miss drama, and smash timing.
+- Keep tuning rally feel, AI difficulty, Hidalgo swing/miss animation feel, near-miss drama, and smash timing.
 - Consider code-splitting later if the production bundle size becomes a real loading problem.
 
 ## Notes
