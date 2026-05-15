@@ -70,6 +70,7 @@ Current check notes:
 - `src/components/GameHud.tsx` shows the in-game overlays and scoreboard.
 - `src/components/GameMenus.tsx` shows the start and game-over screens.
 - `src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
+- `src/hooks/usePlayerInput.ts` keeps keyboard, mouse, click, Space, and swing animation input handling in one place.
 - `src/hooks/useTennisGame.ts` manages tennis scoring and match state.
 - `src/gameplay/shotPhysics.ts` calculates shot direction and speed.
 - `src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
