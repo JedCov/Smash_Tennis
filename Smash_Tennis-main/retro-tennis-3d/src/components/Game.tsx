@@ -7,6 +7,7 @@ import { Character } from './Character';
 import { Ball, type BallHandle } from './Ball';
 import { GameHud } from './GameHud';
 import { GameMenus } from './GameMenus';
+import { GameVfx } from './GameVfx';
 import { useGameplayLoop } from '../hooks/useGameplayLoop';
 import { useTennisGame } from '../hooks/useTennisGame';
 import { GameState, type PlayerType } from '../types';
@@ -138,6 +139,8 @@ export function Game() {
           difficultyStats={difficultyStats}
         />
       </Canvas>
+
+      <GameVfx />
 
       <GameHud
         score={score}
