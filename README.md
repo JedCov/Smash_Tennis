@@ -16,7 +16,7 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
 - Player-vs-AI rallies with configurable rally pacing and quick Hidalgo swing animations.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server rotation, brief point-result pause, and tiebreak support.
-- Scoreboard, serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, sound effects, and replay flow.
+- Scoreboard, serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, sound effects routed through one small audio manager, and replay flow.
 - Lightweight browser build powered by React, Vite, Three.js, and React Three Fiber.
 
 ## Controls / How to use
@@ -53,6 +53,7 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
 - `Smash_Tennis-main/retro-tennis-3d/src/components/GameHud.tsx` shows the in-game overlays.
 - `Smash_Tennis-main/retro-tennis-3d/src/components/GameVfx.tsx` listens for smash events and shows simple visual effects.
 - `Smash_Tennis-main/retro-tennis-3d/src/components/GameMenus.tsx` shows the start and game-over screens.
+- `Smash_Tennis-main/retro-tennis-3d/src/audio/audioManager.ts` maps simple game events like hits, points, AI near misses, and start-button clicks to sound effects.
 - `Smash_Tennis-main/retro-tennis-3d/src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
 - `Smash_Tennis-main/retro-tennis-3d/src/gameplay/shotPhysics.ts` calculates shot direction and speed.
 - `Smash_Tennis-main/retro-tennis-3d/src/gameplay/gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.

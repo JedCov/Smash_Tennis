@@ -22,12 +22,12 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 - Player-vs-AI rallies with configurable rally pacing and quick Hidalgo swing animations.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server rotation, and tiebreak support.
-- Scoreboard, serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, point feedback, sound effects, and replay flow.
+- Scoreboard, serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, point feedback, sound effects routed through one small audio manager, and replay flow.
 - Lightweight browser build powered by React, Vite, Three.js, and React Three Fiber.
 
 ## Code organization
 
-The main game screen is split into small files so it is easier to maintain: `Game.tsx` wires the scene together, `GameHud.tsx` shows the in-game overlays, `GameVfx.tsx` listens for smash events and shows simple visual effects, `GameMenus.tsx` shows the start and game-over screens, `useGameplayLoop.ts` runs the frame-by-frame gameplay logic and short AI animation triggers, `shotPhysics.ts` calculates shot direction and speed, and `gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
+The main game screen is split into small files so it is easier to maintain: `Game.tsx` wires the scene together, `GameHud.tsx` shows the in-game overlays, `GameVfx.tsx` listens for smash events and shows simple visual effects, `GameMenus.tsx` shows the start and game-over screens, `useGameplayLoop.ts` runs the frame-by-frame gameplay logic and short AI animation triggers, `audioManager.ts` maps simple game events to sound effects, `shotPhysics.ts` calculates shot direction and speed, and `gameTuning.ts` keeps shared court, serve, boundary, movement, AI, and smash tuning numbers in one place.
 
 ## How to run locally
 

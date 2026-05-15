@@ -1,5 +1,5 @@
 import { GameState, type PlayerType } from '../types';
-import { playScoreSound } from '../sounds';
+import { playAudioEvent } from '../audio/audioManager';
 
 interface GameMenusProps {
   gameState: GameState;
@@ -17,7 +17,7 @@ export function GameMenus({ gameState, winner, startGame }: GameMenusProps) {
             <p className="text-white text-xl mb-10 font-bold opacity-90 underline decoration-4 underline-offset-8">THE ULTIMATE 3D SMASH</p>
             <button
               onClick={() => {
-                playScoreSound();
+                playAudioEvent('ui.start');
                 startGame();
               }}
               className="bg-white text-orange-600 px-12 py-6 text-3xl font-black hover:scale-105 transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-2 cursor-pointer"

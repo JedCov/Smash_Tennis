@@ -16,7 +16,7 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
 - Player-vs-AI rallies with a gradually increasing rally target, speed, quick Hidalgo return swings, and dramatic Hidalgo near-miss animation when the player is meant to win a rally.
 - Net-front overhead smash opportunity with ball highlight, brief slow motion, assisted positioning, smash flash, screen-shake overlay, text burst feedback, and weak-return miss handling.
 - Tennis scoring with points, games, sets, server indicators, brief point-result pause, and tiebreak support.
-- Clear serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, scoreboard, sound effects, and replay button.
+- Clear serve prompts, smash-ready/missed feedback, Hidalgo near-miss pose, brief point-result banner, scoreboard, sound effects routed through one small audio manager, and replay button.
 - Lightweight Vite build for easy local testing and static deployment.
 
 ## Controls / How to use
@@ -70,6 +70,7 @@ Current check notes:
 - `src/components/GameHud.tsx` shows the in-game overlays and scoreboard.
 - `src/components/GameVfx.tsx` listens for smash events and shows simple visual effects.
 - `src/components/GameMenus.tsx` shows the start and game-over screens.
+- `src/audio/audioManager.ts` maps simple game events like hits, points, AI near misses, and start-button clicks to sound effects.
 - `src/hooks/useGameplayLoop.ts` runs the frame-by-frame gameplay logic.
 - `src/hooks/usePlayerInput.ts` keeps keyboard, mouse, click, Space, and swing animation input handling in one place.
 - `src/hooks/useTennisGame.ts` manages tennis scoring and match state.
