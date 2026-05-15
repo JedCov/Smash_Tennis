@@ -12,7 +12,7 @@ import {
   PLAYER_MOVEMENT_LIMITS,
   SERVE_POSITIONS
 } from '../gameplay/gameTuning';
-import { playHitSound, playMissSound, playScoreSound } from '../sounds';
+import { playAudioEvent } from '../audio/audioManager';
 import { GameState, type PlayerType } from '../types';
 import { usePlayerInput } from './usePlayerInput';
 
@@ -158,7 +158,7 @@ export function useGameplayLoop({
     endSmashOpportunity();
     triggerGameplayEvent('smash:activated');
     triggerGameplayEvent('vfx:overhead-smash');
-    playHitSound();
+    playAudioEvent('hit.smash');
     clearSwingInput();
   };
 
@@ -170,7 +170,7 @@ export function useGameplayLoop({
     setLastHitter('PLAYER');
     consecutiveReturns.current++;
     triggerGameplayEvent('smash:weak-return');
-    playHitSound();
+    playAudioEvent('hit.normal');
   };
 
   useEffect(() => {
@@ -276,7 +276,7 @@ export function useGameplayLoop({
           ballRef.current?.setVelocity(serveVel);
           setGameState(GameState.PLAYING);
           setLastHitter('PLAYER');
-          playHitSound();
+          playAudioEvent('hit.normal');
           clearSwingInput();
         }
       } else {
@@ -307,7 +307,7 @@ export function useGameplayLoop({
           ballRef.current?.setVelocity(serveVel);
           setGameState(GameState.PLAYING);
           setLastHitter('AI');
-          playHitSound();
+          playAudioEvent('hit.normal');
         }
       }
       return;
@@ -348,6 +348,7 @@ export function useGameplayLoop({
     if (shouldShowAiMissSwing) {
       aiMissSwingTriggered.current = true;
       triggerAiSwing(true);
+      playAudioEvent('ai.nearMiss');
     }
 
     // AI Hit Detection
@@ -362,7 +363,7 @@ export function useGameplayLoop({
         ballRef.current?.setVelocity(aiReturnVel.multiplyScalar(difficultyStats.gameDifficultyMultiplier));
         setLastHitter('AI');
         triggerAiSwing();
-        playHitSound();
+        playAudioEvent('hit.normal');
       }
     }
 
@@ -374,7 +375,7 @@ export function useGameplayLoop({
         ballRef.current?.setVelocity(playerReturnVel);
         setLastHitter('PLAYER');
         consecutiveReturns.current++;
-        playHitSound();
+        playAudioEvent('hit.normal');
 
         clearSwingInput();
       }
@@ -384,8 +385,7 @@ export function useGameplayLoop({
       if (pointEndedRef.current) return;
       pointEndedRef.current = true;
       onScore(winner);
-      if (positiveForPlayer) playScoreSound();
-      else playMissSound();
+      playAudioEvent(positiveForPlayer ? 'point.player' : 'point.ai');
     };
 
     // Net collision: if the ball crosses the net too low, the hitter loses the point.

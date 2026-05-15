@@ -26,10 +26,6 @@ export const playHitSound = async () => {
     synth?.triggerAttackRelease('C3', '16n');
 };
 
-export const playWallSound = async () => {
-    await initAudio();
-    synth?.triggerAttackRelease('G2', '16n');
-};
 
 export const playScoreSound = async () => {
     await initAudio();
