@@ -8,7 +8,7 @@ Live version: https://jedbcov-coder.github.io/Smash_Tennis/
 
 ## What this project does
 
-This is a React + Vite browser game that uses Three.js through React Three Fiber. It builds into a static `dist` folder for GitHub Pages.
+This is a React + Vite browser game that uses Three.js through React Three Fiber. It builds into a static `dist` folder for GitHub Pages, with no Express server or Gemini API setup required.
 
 ## Features
 
@@ -43,6 +43,8 @@ This is a React + Vite browser game that uses Three.js through React Three Fiber
    ```
 
 4. Open the local link shown in the terminal, usually `http://localhost:3000/`.
+
+Setup note: this app is a static browser game, so you do not need to create environment variables, add a Gemini API key, or start a separate Express server.
 
 ## Useful checks
 

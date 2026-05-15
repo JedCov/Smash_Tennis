@@ -8,7 +8,7 @@ Smash Tennis is a retro-inspired 3D arcade tennis game. You control Blake, retur
 
 ## Project type
 
-This is a React + Vite browser game that uses Three.js through React Three Fiber. It is a static site, which means GitHub Pages can host the built files without a server.
+This is a React + Vite browser game that uses Three.js through React Three Fiber. It is a static site, which means GitHub Pages can host the built files without a server or API key setup.
 
 ## Controls
 
@@ -35,6 +35,8 @@ The main game screen is split into small files so it is easier to maintain: `Gam
 2. Install the project files once with `npm install`.
 3. Start the local version with `npm run dev`.
 4. Open the local link shown in the terminal, usually `http://localhost:3000/`.
+
+Setup note: this app is a static browser game, so you do not need to create environment variables, add a Gemini API key, or start a separate Express server.
 
 ## Deployment notes
 
