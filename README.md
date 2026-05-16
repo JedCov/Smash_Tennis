@@ -4,7 +4,7 @@ Smash Tennis is a retro-inspired 3D browser tennis game. You control Blake, retu
 
 ## Live demo / playable link
 
-Live version: https://jedbcov-coder.github.io/Smash_Tennis/
+Live version: https://jedcov.github.io/Smash_Tennis/
 
 ## What this project does
 
