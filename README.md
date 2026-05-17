@@ -8,7 +8,7 @@ Live version: https://jedcov.github.io/Smash_Tennis/
 
 ## What this project does
 
-This is a React + Vite game that runs in the browser. It uses Three.js through React Three Fiber for the 3D court, players, ball, and camera. The app builds into static files, so GitHub Pages can host it without a separate server.
+This is a React + Vite game that runs in the browser. It uses Three.js through React Three Fiber for the 3D court, players, ball, and camera. The app builds into static files, so GitHub Pages can host it without a separate server or API key setup.
 
 ## Features
 
@@ -44,6 +44,8 @@ This is a React + Vite game that runs in the browser. It uses Three.js through R
    ```
 
 4. Open the local link shown in the terminal, usually `http://localhost:3000/`.
+
+Setup note: this app is a static browser game, so you do not need to create environment variables, add a Gemini API key, or start a separate Express server.
 
 ## Project structure
 
